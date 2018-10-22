@@ -1,5 +1,6 @@
 *_delete.csv
 *_delete.csv.tmp
 *_upsert.csv
+*_upsert.csv.tmp
 
 .idea/
