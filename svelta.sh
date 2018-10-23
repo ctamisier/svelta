@@ -40,7 +40,7 @@ comm -3 <(sort "$before_file") <(sort "$after_file") \
 # $delete_file_tmp contains also lines that are updated in the $upsert_file so we don't want them in the final "to_delete" file
 # we perform another comm on those files containing only the identifiers of records
 # this way we eliminate records that are updated in the newest CSV files and keeping records that really need to be deleted
-comm -23 <(cat "$delete_file_tmp" | awk -v OFS=',' -F',' '{print '"$ids"'}') <(cat "$upsert_file_tmp" | awk -v OFS=',' -F',' '{print '"$ids"'}') > "$delete_file_tmp_2"
+comm -23 <(awk -v OFS=',' -F',' '{print '"$ids"'}' < "$delete_file_tmp") <(awk -v OFS=',' -F',' '{print '"$ids"'}' < "$upsert_file_tmp") > "$delete_file_tmp_2"
 rm "$delete_file_tmp"
 
 # file header
@@ -53,16 +53,16 @@ rm "$upsert_file_tmp"
 echo "$header" > "$delete_file"
 
 # constructs commas (e.g the list of commas to be added after each line to have a valid CSV)
-num_commas=$(($(echo "$header" | awk -F"," '{print NF-1}') - $nb_ids + 1))
+num_commas=$(($(echo "$header" | awk -F"," '{print NF-1}') - nb_ids + 1))
 commas=$(for i in $(seq 1 "$num_commas"); do echo -n ","; done)
 
-cat "$delete_file_tmp_2" | sed -e 's/$/'"$commas"'/'>> "$delete_file"
+sed -e 's/$/'"$commas"'/' < "$delete_file_tmp_2" >> "$delete_file"
 rm "$delete_file_tmp_2"
 
-echo lines count: $(wc -l "$upsert_file")
-echo lines count: $(wc -l "$delete_file")
+echo "lines count: $(wc -l "$upsert_file")"
+echo "lines count: $(wc -l "$delete_file")"
 
 # get a second timestamp of right now in seconds
 end_seconds=$(date +%s)
 
-echo Done in $(($end_seconds-$start_seconds)) seconds
+echo Done in $((end_seconds - start_seconds)) seconds
